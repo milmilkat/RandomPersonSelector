@@ -1,8 +1,38 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import styles from '../styles/Home.module.css'
+import Head from "next/head";
+import { useState } from "react";
+import styles from "../styles/Home.module.css";
+import Switch from "@mui/material/Switch";
+import Button from "@mui/material/Button";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
 
 export default function Home() {
+  const [people, setPeople] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [randomPerson, setRandomPerson] = useState(undefined);
+
+  const fetchPeople = async () => {
+    const response = await fetch("/api/people");
+    const data = await response.json();
+    setLoading(false);
+    setPeople(data);
+  };
+
+  const setPersonChecked = (index) => {
+    const newPeople = [...people];
+    newPeople[index].available = !newPeople[index].available;
+    setPeople(newPeople);
+  };
+
+  const getRandomPerson = () => {
+    const availables = people.filter((p) => p.available);
+    if (!availables.length) return;
+
+    var random = availables[Math.floor(Math.random() * availables.length)];
+    setPersonChecked(random.id);
+    setRandomPerson(random);
+  };
+
   return (
     <div className={styles.container}>
       <Head>
@@ -12,58 +42,42 @@ export default function Home() {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+        {loading && (
+          <Button variant="contained" onClick={fetchPeople}>
+            Load People
+          </Button>
+        )}
+        {!loading && (
+          <Stack spacing={1} direction="column">
+            {people.map((person) => {
+              return (
+                <Stack spacing={1} direction="column" key={person.id}>
+                  <div>
+                    {person.name}
+                    <Switch
+                      checked={person.available}
+                      onChange={() => setPersonChecked(person.id)}
+                      name={person.name}
+                      color="primary"
+                    />
+                  </div>
+                </Stack>
+              );
+            })}
 
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
+            <Button
+              style={{ marginBottom: "10px" }}
+              variant="contained"
+              color="secondary"
+              onClick={getRandomPerson}
+            >
+              Get Random Person
+            </Button>
 
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/canary/examples"
-            className={styles.card}
-          >
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
+            <TextField color="secondary" focused value={randomPerson?.name} />
+          </Stack>
+        )}
       </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
     </div>
-  )
+  );
 }
