@@ -7,4 +7,5 @@ export const people = [
   { id: 5, name: "Lutz", available: true },
   { id: 6, name: "Slawa", available: true },
   { id: 7, name: "Jason", available: true },
+  { id: 8, name: "Svenja", available: true },
 ];
